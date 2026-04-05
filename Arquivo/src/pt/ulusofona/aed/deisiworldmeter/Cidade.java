@@ -1,5 +1,3 @@
-package pt.ulusofona.aed.deisiworldmeter;
-
 public class Cidade {
     private String alfa2;
     private String nome;
