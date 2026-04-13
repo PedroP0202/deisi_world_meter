@@ -4,14 +4,11 @@ public class Cidade {
     private String alfa2;
     private String nome;
     private String regiao;
-    private double populacao;
+    private int populacao;
     private double latitude;
     private double longitude;
 
-
-
-    
-    public Cidade(String alfa2, String nome, String regiao, double populacao, double latitude, double longitude) {
+    public Cidade(String alfa2, String nome, String regiao, int populacao, double latitude, double longitude) {
         this.alfa2 = alfa2;
         this.nome = nome;
         this.regiao = regiao;
@@ -20,23 +17,15 @@ public class Cidade {
         this.longitude = longitude;
     }
 
-    
     public String getAlfa2() { return alfa2; }
     public String getNome() { return nome; }
     public String getRegiao() { return regiao; }
-    public double getPopulacao() { return populacao; }
+    public int getPopulacao() { return populacao; }
     public double getLatitude() { return latitude; }
     public double getLongitude() { return longitude; }
 
     @Override
     public String toString() {
-        return "Cidade{" +
-                "alfa2='" + alfa2 + '\'' +
-                ", nome='" + nome + '\'' +
-                ", regiao='" + regiao + '\'' +
-                ", populacao=" + populacao +
-                ", latitude=" + latitude +
-                ", longitude=" + longitude +
-                '}';
+        return nome + " | " + alfa2.toUpperCase() + " | " + regiao + " | " + populacao + " | (" + latitude + "," + longitude + ")";
     }
 }

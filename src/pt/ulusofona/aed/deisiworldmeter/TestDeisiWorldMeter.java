@@ -51,7 +51,7 @@ public class TestDeisiWorldMeter {
         assertEquals("PT", cidade.getAlfa2());
         assertEquals("Lisboa", cidade.getNome());
         assertEquals("Lisboa e Vale do Tejo", cidade.getRegiao());
-        assertEquals(500000, cidade.getPopulacao(), 0.01);
+        assertEquals(500000, cidade.getPopulacao());
         assertEquals(38.7, cidade.getLatitude(), 0.01);
         assertEquals(-9.1, cidade.getLongitude(), 0.01);
     }

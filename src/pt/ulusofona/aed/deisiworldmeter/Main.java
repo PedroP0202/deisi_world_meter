@@ -60,23 +60,52 @@ public class Main {
             }
             while (scanner.hasNextLine()) {
                 String linha = scanner.nextLine();
-                String[] partes = linha.split(",");
+                if (linha.trim().isEmpty()) {
+                    continue;
+                }
+                String[] partes = linha.split(",", -1);
                 if (partes.length != 4) {
                     INPUT_INVALIDOS.add(linha);
                     continue;
                 }
                 try {
-                    int id = Integer.parseInt(partes[0].trim());
+                    String idStr = partes[0].trim();
                     String alfa2 = partes[1].trim();
                     String alfa3 = partes[2].trim();
                     String nome = partes[3].trim();
-                    PAISES.add(new Pais(id, alfa2, alfa3, nome));
+
+                    if (idStr.isEmpty() || alfa2.isEmpty() || alfa3.isEmpty() || nome.isEmpty()) {
+                        INPUT_INVALIDOS.add(linha);
+                        continue;
+                    }
+
+                    int id = Integer.parseInt(idStr);
+                    if (id <= 0 || !alfa2.matches("[a-zA-Z]{2}") || !alfa3.matches("[a-zA-Z]{3}")) {
+                        INPUT_INVALIDOS.add(linha);
+                        continue;
+                    }
+
+                    boolean duplicate = false;
+                    for (Pais pais : PAISES) {
+                        if (pais.getId() == id || pais.getAlfa2().equalsIgnoreCase(alfa2)) {
+                            duplicate = true;
+                            break;
+                        }
+                    }
+
+                    if (duplicate) {
+                        INPUT_INVALIDOS.add(linha);
+                        continue;
+                    }
+
+                    Pais novoPais = new Pais(id, alfa2, alfa3, nome);
+                    PAISES.add(novoPais);
                 } catch (Exception e) {
                     INPUT_INVALIDOS.add(linha);
                 }
             }
         } catch (FileNotFoundException e) {
-            // Ignorar ficheiro nao encontrado
+            
         }
     }
 
@@ -87,7 +116,10 @@ public class Main {
             }
             while (scanner.hasNextLine()) {
                 String linha = scanner.nextLine();
-                String[] partes = linha.split(",");
+                if (linha.trim().isEmpty()) {
+                    continue;
+                }
+                String[] partes = linha.split(",", -1);
                 if (partes.length != 6) {
                     INPUT_INVALIDOS.add(linha);
                     continue;
@@ -97,16 +129,42 @@ public class Main {
                     String nome = partes[1].trim();
                     String regiao = partes[2].trim();
                     String popStr = partes[3].trim();
-                    double populacao = popStr.isEmpty() ? 0.0 : Double.parseDouble(popStr);
-                    double latitude = Double.parseDouble(partes[4].trim());
-                    double longitude = Double.parseDouble(partes[5].trim());
+                    String latStr = partes[4].trim();
+                    String lonStr = partes[5].trim();
+
+                    if (alfa2.isEmpty() || nome.isEmpty() || regiao.isEmpty() || popStr.isEmpty() || latStr.isEmpty() || lonStr.isEmpty()) {
+                        INPUT_INVALIDOS.add(linha);
+                        continue;
+                    }
+
+                    int populacao = (int) Double.parseDouble(popStr);
+                    double latitude = Double.parseDouble(latStr);
+                    double longitude = Double.parseDouble(lonStr);
+                    if (populacao < 0 || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+                        INPUT_INVALIDOS.add(linha);
+                        continue;
+                    }
+
+                    Pais paisDaCidade = null;
+                    for (Pais p : PAISES) {
+                        if (p.getAlfa2().equalsIgnoreCase(alfa2)) {
+                            paisDaCidade = p;
+                            break;
+                        }
+                    }
+                    if (paisDaCidade == null) {
+                        INPUT_INVALIDOS.add(linha);
+                        continue;
+                    }
+
                     CIDADES.add(new Cidade(alfa2, nome, regiao, populacao, latitude, longitude));
+                    paisDaCidade.addCidade();
                 } catch (Exception e) {
                     INPUT_INVALIDOS.add(linha);
                 }
             }
         } catch (FileNotFoundException e) {
-            // Ignorar ficheiro nao encontrado
+            
         }
     }
 
@@ -117,17 +175,37 @@ public class Main {
             }
             while (scanner.hasNextLine()) {
                 String linha = scanner.nextLine();
-                String[] partes = linha.split(",");
+                if (linha.trim().isEmpty()) {
+                    continue;
+                }
+                String[] partes = linha.split(",", -1);
                 if (partes.length != 5) {
                     INPUT_INVALIDOS.add(linha);
                     continue;
                 }
                 try {
-                    int id = Integer.parseInt(partes[0].trim());
-                    int ano = Integer.parseInt(partes[1].trim());
-                    int popM = Integer.parseInt(partes[2].trim());
-                    int popF = Integer.parseInt(partes[3].trim());
-                    double densidade = Double.parseDouble(partes[4].trim());
+                    String idStr = partes[0].trim();
+                    String anoStr = partes[1].trim();
+                    String popMStr = partes[2].trim();
+                    String popFStr = partes[3].trim();
+                    String densidadeStr = partes[4].trim();
+
+                    if (idStr.isEmpty() || anoStr.isEmpty() || popMStr.isEmpty() || popFStr.isEmpty() || densidadeStr.isEmpty()) {
+                        INPUT_INVALIDOS.add(linha);
+                        continue;
+                    }
+
+                    int id = Integer.parseInt(idStr);
+                    int ano = Integer.parseInt(anoStr);
+                    int popM = Integer.parseInt(popMStr);
+                    int popF = Integer.parseInt(popFStr);
+                    double densidade = Double.parseDouble(densidadeStr);
+
+                    if (id <= 0 || ano <= 0 || popM < 0 || popF < 0 || densidade < 0) {
+                        INPUT_INVALIDOS.add(linha);
+                        continue;
+                    }
+
                     POPULACOES.add(new Populacao(id, ano, popM, popF, densidade));
                 } catch (Exception e) {
                     INPUT_INVALIDOS.add(linha);
