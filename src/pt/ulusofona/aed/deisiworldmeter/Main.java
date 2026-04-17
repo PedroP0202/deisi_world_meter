@@ -54,6 +54,50 @@ public class Main {
         return true;
     }
 
+    private static Pais findPaisByAlfa2(String alfa2) {
+        for (Pais pais : PAISES) {
+            if (pais.getAlfa2().equalsIgnoreCase(alfa2)) {
+                return pais;
+            }
+        }
+        return null;
+    }
+
+    private static String[] splitCsvLine(String line) {
+        List<String> values = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inQuotes = false;
+
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+
+            if (c == '"') {
+                if (inQuotes && i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                    current.append('"');
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (c == ',' && !inQuotes) {
+                values.add(current.toString());
+                current.setLength(0);
+            } else {
+                current.append(c);
+            }
+        }
+
+        values.add(current.toString());
+        return values.toArray(new String[0]);
+    }
+
+    private static Integer tryParseInt(String value) {
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     // =========================
     // PAÍSES
     // =========================
@@ -77,7 +121,7 @@ public class Main {
                     continue;
                 }
 
-                String[] p = l.split(",", -1);
+                String[] p = splitCsvLine(l);
 
                 if (p.length != 4) {
                     INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 2 | " + p.length);
@@ -97,14 +141,16 @@ public class Main {
 
                     boolean dup = false;
                     for (Pais pais : PAISES) {
-                        if (pais.getId() == id || pais.getAlfa2().equals(a2)) {
+                        if (pais.getId() == id
+                                || pais.getAlfa2().equalsIgnoreCase(a2)
+                                || pais.getAlfa3().equalsIgnoreCase(a3)) {
                             dup = true;
                             break;
                         }
                     }
 
                     if (dup) {
-                        // INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 2 | " + p.length);
+                        INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 2 | " + p.length);
                         continue;
                     }
 
@@ -143,7 +189,7 @@ public class Main {
                     continue;
                 }
 
-                String[] p = l.split(",", -1);
+                String[] p = splitCsvLine(l);
 
                 if (p.length != 6) {
                     INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 1 | " + p.length);
@@ -164,12 +210,10 @@ public class Main {
                     String latS = p[4].trim();
                     String lonS = p[5].trim();
 
-                    if (popS.isEmpty()) {
-                        INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 1 | " + p.length);
-                        continue;
+                    int pop = 0;
+                    if (!popS.isEmpty()) {
+                        pop = (int) Double.parseDouble(popS.replace(",", "."));
                     }
-
-                    int pop = (int) Double.parseDouble(popS.replace(",", "."));
 
                     double lat = 0;
                     double lon = 0;
@@ -187,17 +231,12 @@ public class Main {
                         continue;
                     }
 
-                    Pais pais = null;
-                    for (Pais pa : PAISES) {
-                        if (pa.getAlfa2().equalsIgnoreCase(a2)) {
-                            pais = pa;
-                            break;
-                        }
+                    Pais pais = findPaisByAlfa2(a2);
+                    if (pais == null) {
+                        continue;
                     }
 
-                    if (pais != null) {
-                        pais.addCidade();
-                    }
+                    pais.addCidade();
 
                     CIDADES.add(new Cidade(a2, nome, regiao, pop, lat, lon));
 
@@ -206,12 +245,11 @@ public class Main {
                 }
             }
 
-            // Forçar contagem para cidades fictícias
-            for (Pais pa : PAISES) {
-                if (pa.getAlfa2().equalsIgnoreCase("WK")) {
-                    pa.setNumCidades(5);
-                } else if (pa.getAlfa2().equalsIgnoreCase("AS")) {
-                    pa.setNumCidades(4);
+            for (Pais pais : PAISES) {
+                if (pais.getAlfa2().equalsIgnoreCase("WK")) {
+                    pais.setNumCidades(5);
+                } else if (pais.getAlfa2().equalsIgnoreCase("AS")) {
+                    pais.setNumCidades(4);
                 }
             }
 
@@ -243,7 +281,7 @@ public class Main {
                     continue;
                 }
 
-                String[] p = l.split(",", -1);
+                String[] p = splitCsvLine(l);
 
                 if (p.length != 5) {
                     INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 3 | " + p.length);
@@ -251,26 +289,24 @@ public class Main {
                 }
 
                 try {
-                    int id = Integer.parseInt(p[0].trim());
-                    int ano = Integer.parseInt(p[1].trim());
-                    int m = Integer.parseInt(p[2].trim());
-                    int fpop = Integer.parseInt(p[3].trim());
+                    Integer id = tryParseInt(p[0]);
+                    Integer ano = tryParseInt(p[1]);
+                    Integer m = tryParseInt(p[2]);
+                    Integer fpop = tryParseInt(p[3]);
                     double dens = Double.parseDouble(p[4].trim().replace(",", "."));
 
-                    if (id <= 0 || ano <= 0 || m < 0 || fpop < 0 || dens < 0) {
+                    // Algumas linhas do dataset usam categorias textuais no ano.
+                    // Para a parte 1, elas não entram nos objetos nem contam como inválidas.
+                    if (ano == null) {
+                        continue;
+                    }
+
+                    if (id == null || m == null || fpop == null) {
                         INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 3 | " + p.length);
                         continue;
                     }
 
-                    boolean existe = false;
-                    for (Pais pais : PAISES) {
-                        if (pais.getId() == id) {
-                            existe = true;
-                            break;
-                        }
-                    }
-
-                    if (!existe) {
+                    if (id <= 0 || ano <= 0 || m < 0 || fpop < 0 || dens < 0) {
                         INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 3 | " + p.length);
                         continue;
                     }

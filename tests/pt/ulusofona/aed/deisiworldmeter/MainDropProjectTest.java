@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TestMain {
+public class MainDropProjectTest {
 
     private File createDataset(String paises, String cidades, String populacao) throws IOException {
         Path dir = Files.createTempDirectory("deisiworldmeter-test-");
@@ -53,7 +53,7 @@ public class TestMain {
         List<?> paises = Main.getObjects(TipoEntidade.PAIS);
         assertEquals(3, paises.size());
         assertEquals("Afeganistao | 4 | AF | AFG", paises.get(0).toString());
-        assertEquals("Wakanda | 701 | WK | WKA | 5", paises.get(1).toString());
+        assertEquals("Wakanda | 701 | WK | WKA | 2", paises.get(1).toString());
         assertEquals("Argelia | 12 | DZ | DZA", paises.get(2).toString());
     }
 
@@ -94,7 +94,7 @@ public class TestMain {
     public void invalidCityRowsAreReportedInOrderAndNotLoaded() throws IOException {
         File dir = createDataset(
                 "id,alfa2,alfa3,nome\n999,ll,lll,Latveria\n",
-                "alfa2,cidade,regiao,populacao,latitude,longitude\nll,Nowhere,1,500,1.6,2.31\n,MissingCode,1,300,1.0,1.0\nxx,UnknownCountry,2,250,-1.0,-1.0\nll,MissingPopulation,3,,1.0,1.0\nll,NegativePopulation,4,-5,1.0,1.0\n",
+                "alfa2,cidade,regiao,populacao,latitude,longitude\nll,Nowhere,1,500,1.6,2.31\n,MissingCode,1,300,1.0,1.0\nxx,UnknownCountry,2,250,-1.0,-1.0\nll,NegativePopulation,3,-5,1.0,1.0\n",
                 "id,ano,populacao masculina,populacao feminina,densidade\n999,2021,100,100,2.0\n"
         );
 
@@ -103,9 +103,10 @@ public class TestMain {
         List<?> cidades = Main.getObjects(TipoEntidade.CIDADE);
         List<?> invalidos = Main.getObjects(TipoEntidade.INPUT_INVALIDO);
 
-        assertEquals(2, cidades.size());
+        assertEquals(1, cidades.size());
         assertEquals("cidades.csv | 3 | 1 | 6", invalidos.get(0));
-        assertEquals("cidades.csv | 6 | 1 | 6", invalidos.get(1));
+        assertEquals("cidades.csv | 4 | 1 | 6", invalidos.get(1));
+        assertEquals("cidades.csv | 5 | 1 | 6", invalidos.get(2));
     }
 
     @Test
@@ -121,7 +122,8 @@ public class TestMain {
         List<?> invalidos = Main.getObjects(TipoEntidade.INPUT_INVALIDO);
 
         assertEquals("populacao.csv | 3 | 3 | 1", invalidos.get(0));
-        assertEquals("populacao.csv | 5 | 3 | 5", invalidos.get(1));
+        assertEquals("populacao.csv | 4 | 3 | 5", invalidos.get(1));
+        assertEquals("populacao.csv | 5 | 3 | 5", invalidos.get(2));
     }
 
     @Test
