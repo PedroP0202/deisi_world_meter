@@ -13,16 +13,35 @@ public class Pais {
         this.alfa3 = alfa3;
         this.nome = nome;
         this.numCidades = 0;
+
     }
 
-    public int getId() { return id; }
-    public String getAlfa2() { return alfa2; }
-    public String getAlfa3() { return alfa3; }
-    public String getNome() { return nome; }
-    public int getNumCidades() { return numCidades; }
+    public int getId() {
+        return id;
+    }
+
+    public String getAlfa2() {
+        return alfa2;
+    }
+
+    public String getAlfa3() {
+        return alfa3;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public int getNumCidades() {
+        return numCidades;
+    }
 
     public void addCidade() {
         this.numCidades++;
+    }
+
+    public void setNumCidades(int numCidades) {
+        this.numCidades = numCidades;
     }
 
     @Override

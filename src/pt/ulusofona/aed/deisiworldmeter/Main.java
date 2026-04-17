@@ -14,234 +14,308 @@ public class Main {
     private static final List<String> INPUT_INVALIDOS = new ArrayList<>();
 
     public static void main(String[] args) {
-        boolean result = parseFiles(new File("."));
-        if (result) {
-            printCidades();
-            System.out.println("População total das cidades lidas: " + calcularPopulacaoTotal());
-        } else {
-            System.err.println("Falha ao carregar os ficheiros.");
-        }
+        parseFiles(new File("."));
     }
 
     public static boolean parseFiles(File folder) {
+
         CIDADES.clear();
         PAISES.clear();
         POPULACOES.clear();
         INPUT_INVALIDOS.clear();
-        
-        File ficheiroPaises = new File(folder, "paises.csv");
-        if (ficheiroPaises.exists()) {
-            parsePaises(ficheiroPaises);
-        } else {
-            System.err.println("Arquivo não encontrado: " + ficheiroPaises.getPath());
+
+        if (folder == null || !folder.exists()) {
+            return false;
         }
 
-        File ficheiroCidades = new File(folder, "cidades.csv");
-        if (ficheiroCidades.exists()) {
-            parseCidades(ficheiroCidades);
-        } else {
-            System.err.println("Arquivo não encontrado: " + ficheiroCidades.getPath());
+        if (!folder.isDirectory()) {
+            folder = folder.getParentFile();
+            if (folder == null || !folder.isDirectory()) {
+                return false;
+            }
         }
 
-        File ficheiroPopulacao = new File(folder, "populacao.csv");
-        if (ficheiroPopulacao.exists()) {
-            parsePopulacao(ficheiroPopulacao);
-        } else {
-            System.err.println("Arquivo não encontrado: " + ficheiroPopulacao.getPath());
+        File paises = new File(folder, "paises.csv");
+        File cidades = new File(folder, "cidades.csv");
+        File populacao = new File(folder, "populacao.csv");
+
+        if (paises.exists()) {
+            parsePaises(paises);
         }
-        
-        return !CIDADES.isEmpty() || !PAISES.isEmpty() || !POPULACOES.isEmpty();
+
+        if (cidades.exists()) {
+            parseCidades(cidades);
+        }
+
+        if (populacao.exists()) {
+            parsePopulacao(populacao);
+        }
+
+        return true;
     }
 
+    // =========================
+    // PAÍSES
+    // =========================
     private static void parsePaises(File f) {
         try (Scanner scanner = new Scanner(f)) {
-            if (scanner.hasNextLine()) {
-                scanner.nextLine();
-            }
+
+            int line = 0;
+            boolean header = true;
+
             while (scanner.hasNextLine()) {
-                String linha = scanner.nextLine();
-                if (linha.trim().isEmpty()) {
+
+                String l = scanner.nextLine();
+                line++;
+
+                if (l.trim().isEmpty()) {
                     continue;
                 }
-                String[] partes = linha.split(",", -1);
-                if (partes.length != 4) {
-                    INPUT_INVALIDOS.add(linha);
+
+                if (header) {
+                    header = false;
                     continue;
                 }
+
+                String[] p = l.split(",", -1);
+
+                if (p.length != 4) {
+                    INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 2 | " + p.length);
+                    continue;
+                }
+
                 try {
-                    String idStr = partes[0].trim();
-                    String alfa2 = partes[1].trim();
-                    String alfa3 = partes[2].trim();
-                    String nome = partes[3].trim();
+                    int id = Integer.parseInt(p[0].trim());
+                    String a2 = p[1].trim();
+                    String a3 = p[2].trim();
+                    String nome = p[3].trim();
 
-                    if (idStr.isEmpty() || alfa2.isEmpty() || alfa3.isEmpty() || nome.isEmpty()) {
-                        INPUT_INVALIDOS.add(linha);
+                    if (id <= 0 || a2.length() != 2 || a3.length() != 3 || nome.isEmpty()) {
+                        INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 2 | " + p.length);
                         continue;
                     }
 
-                    int id = Integer.parseInt(idStr);
-                    if (id <= 0 || !alfa2.matches("[a-zA-Z]{2}") || !alfa3.matches("[a-zA-Z]{3}")) {
-                        INPUT_INVALIDOS.add(linha);
-                        continue;
-                    }
-
-                    boolean duplicate = false;
+                    boolean dup = false;
                     for (Pais pais : PAISES) {
-                        if (pais.getId() == id || pais.getAlfa2().equalsIgnoreCase(alfa2)) {
-                            duplicate = true;
+                        if (pais.getId() == id || pais.getAlfa2().equals(a2)) {
+                            dup = true;
                             break;
                         }
                     }
 
-                    if (duplicate) {
-                        INPUT_INVALIDOS.add(linha);
+                    if (dup) {
+                        INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 2 | " + p.length);
                         continue;
                     }
 
-                    Pais novoPais = new Pais(id, alfa2, alfa3, nome);
-                    PAISES.add(novoPais);
+                    PAISES.add(new Pais(id, a2, a3, nome));
+
                 } catch (Exception e) {
-                    INPUT_INVALIDOS.add(linha);
+                    INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 2 | " + p.length);
                 }
             }
+
         } catch (FileNotFoundException e) {
-            
+            // ignorado
         }
     }
 
+    // =========================
+    // CIDADES
+    // =========================
     private static void parseCidades(File f) {
         try (Scanner scanner = new Scanner(f)) {
-            if (scanner.hasNextLine()) {
-                scanner.nextLine();
-            }
+
+            int line = 0;
+            boolean header = true;
+
             while (scanner.hasNextLine()) {
-                String linha = scanner.nextLine();
-                if (linha.trim().isEmpty()) {
+
+                String l = scanner.nextLine();
+                line++;
+
+                if (l.trim().isEmpty()) {
                     continue;
                 }
-                String[] partes = linha.split(",", -1);
-                if (partes.length != 6) {
-                    INPUT_INVALIDOS.add(linha);
+
+                if (header) {
+                    header = false;
                     continue;
                 }
+
+                String[] p = l.split(",", -1);
+
+                if (p.length != 6) {
+                    INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 1 | " + p.length);
+                    continue;
+                }
+
                 try {
-                    String alfa2 = partes[0].trim();
-                    String nome = partes[1].trim();
-                    String regiao = partes[2].trim();
-                    String popStr = partes[3].trim();
-                    String latStr = partes[4].trim();
-                    String lonStr = partes[5].trim();
+                    String a2 = p[0].trim();
+                    String nome = p[1].trim();
+                    String regiao = p[2].trim();
 
-                    if (alfa2.isEmpty() || nome.isEmpty() || regiao.isEmpty() || popStr.isEmpty() || latStr.isEmpty() || lonStr.isEmpty()) {
-                        INPUT_INVALIDOS.add(linha);
+                    if (a2.isEmpty()) {
+                        INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 1 | " + p.length);
                         continue;
                     }
 
-                    int populacao = (int) Double.parseDouble(popStr);
-                    double latitude = Double.parseDouble(latStr);
-                    double longitude = Double.parseDouble(lonStr);
-                    if (populacao < 0 || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-                        INPUT_INVALIDOS.add(linha);
+                    String popS = p[3].trim();
+                    String latS = p[4].trim();
+                    String lonS = p[5].trim();
+
+                    if (popS.isEmpty()) {
+                        INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 1 | " + p.length);
                         continue;
                     }
 
-                    Pais paisDaCidade = null;
-                    for (Pais p : PAISES) {
-                        if (p.getAlfa2().equalsIgnoreCase(alfa2)) {
-                            paisDaCidade = p;
+                    int pop = (int) Double.parseDouble(popS.replace(",", "."));
+
+                    double lat = 0;
+                    double lon = 0;
+
+                    if (!latS.isEmpty()) {
+                        lat = Double.parseDouble(latS.replace(",", "."));
+                    }
+
+                    if (!lonS.isEmpty()) {
+                        lon = Double.parseDouble(lonS.replace(",", "."));
+                    }
+
+                    if (pop < 0) {
+                        INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 1 | " + p.length);
+                        continue;
+                    }
+
+                    Pais pais = null;
+                    for (Pais pa : PAISES) {
+                        if (pa.getAlfa2().equals(a2)) {
+                            pais = pa;
                             break;
                         }
                     }
-                    if (paisDaCidade == null) {
-                        INPUT_INVALIDOS.add(linha);
-                        continue;
+
+                    if (pais != null) {
+                        pais.addCidade();
                     }
 
-                    CIDADES.add(new Cidade(alfa2, nome, regiao, populacao, latitude, longitude));
-                    paisDaCidade.addCidade();
+                    CIDADES.add(new Cidade(a2, nome, regiao, pop, lat, lon));
+
                 } catch (Exception e) {
-                    INPUT_INVALIDOS.add(linha);
+                    INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 1 | " + p.length);
                 }
             }
+
         } catch (FileNotFoundException e) {
-            
+            // ignorado
         }
     }
 
+    // =========================
+    // POPULAÇÃO
+    // =========================
     private static void parsePopulacao(File f) {
         try (Scanner scanner = new Scanner(f)) {
-            if (scanner.hasNextLine()) {
-                scanner.nextLine();
-            }
+
+            int line = 0;
+            boolean header = true;
+
             while (scanner.hasNextLine()) {
-                String linha = scanner.nextLine();
-                if (linha.trim().isEmpty()) {
+
+                String l = scanner.nextLine();
+                line++;
+
+                if (l.trim().isEmpty()) {
                     continue;
                 }
-                String[] partes = linha.split(",", -1);
-                if (partes.length != 5) {
-                    INPUT_INVALIDOS.add(linha);
+
+                if (header) {
+                    header = false;
                     continue;
                 }
+
+                String[] p = l.split(",", -1);
+
+                if (p.length != 5) {
+                    INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 3 | " + p.length);
+                    continue;
+                }
+
                 try {
-                    String idStr = partes[0].trim();
-                    String anoStr = partes[1].trim();
-                    String popMStr = partes[2].trim();
-                    String popFStr = partes[3].trim();
-                    String densidadeStr = partes[4].trim();
+                    int id = Integer.parseInt(p[0].trim());
+                    int ano = Integer.parseInt(p[1].trim());
+                    int m = Integer.parseInt(p[2].trim());
+                    int fpop = Integer.parseInt(p[3].trim());
+                    double dens = Double.parseDouble(p[4].trim().replace(",", "."));
 
-                    if (idStr.isEmpty() || anoStr.isEmpty() || popMStr.isEmpty() || popFStr.isEmpty() || densidadeStr.isEmpty()) {
-                        INPUT_INVALIDOS.add(linha);
+                    if (id <= 0 || ano <= 0 || m < 0 || fpop < 0 || dens < 0) {
+                        INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 3 | " + p.length);
                         continue;
                     }
 
-                    int id = Integer.parseInt(idStr);
-                    int ano = Integer.parseInt(anoStr);
-                    int popM = Integer.parseInt(popMStr);
-                    int popF = Integer.parseInt(popFStr);
-                    double densidade = Double.parseDouble(densidadeStr);
+                    boolean existe = false;
+                    for (Pais pais : PAISES) {
+                        if (pais.getId() == id) {
+                            existe = true;
+                            break;
+                        }
+                    }
 
-                    if (id <= 0 || ano <= 0 || popM < 0 || popF < 0 || densidade < 0) {
-                        INPUT_INVALIDOS.add(linha);
+                    if (!existe) {
+                        INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 3 | " + p.length);
                         continue;
                     }
 
-                    POPULACOES.add(new Populacao(id, ano, popM, popF, densidade));
+                    POPULACOES.add(new Populacao(id, ano, m, fpop, dens));
+
                 } catch (Exception e) {
-                    INPUT_INVALIDOS.add(linha);
+                    INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 3 | " + p.length);
                 }
             }
+
         } catch (FileNotFoundException e) {
-            // Ignorar ficheiro nao encontrado
+            // ignorado
         }
     }
 
-    public static ArrayList<?> getObjects(TipoEntidade tipo) {
-        if (tipo == TipoEntidade.CIDADE) {
-            return new ArrayList<>(CIDADES);
-        } else if (tipo == TipoEntidade.PAIS) {
-            return new ArrayList<>(PAISES);
-        } else if (tipo == TipoEntidade.INPUT_INVALIDO) {
-            return new ArrayList<>(INPUT_INVALIDOS);
-        }
-        return new ArrayList<>();
-    }
-
-    public static List<Cidade> getCidades() {
-        return new ArrayList<>(CIDADES);
-    }
+    // =========================
+    // MÉTODOS OBRIGATÓRIOS
+    // =========================
 
     public static double calcularPopulacaoTotal() {
         double total = 0;
-        for (Cidade cidade : CIDADES) {
-            total += cidade.getPopulacao();
+        for (Cidade c : CIDADES) {
+            total += c.getPopulacao();
         }
         return total;
     }
 
-    public static void printCidades() {
-        for (Cidade cidade : CIDADES) {
-            System.out.println(cidade);
+    public static ArrayList<?> getObjects(TipoEntidade tipo) {
+
+        if (tipo == TipoEntidade.CIDADE) {
+            return new ArrayList<>(CIDADES);
         }
+
+        if (tipo == TipoEntidade.PAIS) {
+            return new ArrayList<>(PAISES);
+        }
+
+        if (tipo == TipoEntidade.INPUT_INVALIDO) {
+            return new ArrayList<>(INPUT_INVALIDOS);
+        }
+
+        return new ArrayList<>();
+    }
+
+    public static List<Pais> obtemPaisesComIdMaior700() {
+        List<Pais> r = new ArrayList<>();
+
+        for (Pais p : PAISES) {
+            if (p.getId() > 700) {
+                r.add(p);
+            }
+        }
+
+        return r;
     }
 }
