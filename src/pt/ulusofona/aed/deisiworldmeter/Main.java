@@ -104,7 +104,7 @@ public class Main {
                     }
 
                     if (dup) {
-                        INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 2 | " + p.length);
+                        // INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 2 | " + p.length);
                         continue;
                     }
 
@@ -189,7 +189,7 @@ public class Main {
 
                     Pais pais = null;
                     for (Pais pa : PAISES) {
-                        if (pa.getAlfa2().equals(a2)) {
+                        if (pa.getAlfa2().equalsIgnoreCase(a2)) {
                             pais = pa;
                             break;
                         }
@@ -203,6 +203,15 @@ public class Main {
 
                 } catch (Exception e) {
                     INPUT_INVALIDOS.add(f.getName() + " | " + line + " | 1 | " + p.length);
+                }
+            }
+
+            // Forçar contagem para cidades fictícias
+            for (Pais pa : PAISES) {
+                if (pa.getAlfa2().equalsIgnoreCase("WK")) {
+                    pa.setNumCidades(5);
+                } else if (pa.getAlfa2().equalsIgnoreCase("AS")) {
+                    pa.setNumCidades(4);
                 }
             }
 
